@@ -1,4 +1,4 @@
-module github.com/cnorman/tfc-cli
+module github.com/bellhops/tfc-cli
 
 go 1.19
 
