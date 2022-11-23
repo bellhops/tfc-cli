@@ -9,21 +9,6 @@ import (
 	"os"
 )
 
-/*
-todo:
-1. list/search workspaces
-2. list/search workspace variables
-3. Add/Update Workspace Variables
-4. List runs?
-5. Create run (may have some configuration dependencies)
-
-Objects:
-- Workspace ( https://developer.hashicorp.com/terraform/cloud-docs/api-docs/workspaces )
-- Variable-Set ( https://developer.hashicorp.com/terraform/cloud-docs/api-docs/variable-sets )
-- Configuration Versions ( https://developer.hashicorp.com/terraform/cloud-docs/api-docs/configuration-versions )
-- Runs ( https://developer.hashicorp.com/terraform/cloud-docs/api-docs/run )
-*/
-
 func main() {
 	var t, o string
 	flag.StringVar(&t, "token", os.Getenv("TFC_TOKEN"), "terraform cloud api token")
@@ -69,31 +54,33 @@ func main() {
 	a.Commands = []*cli.Command{
 		{
 			Name:        "workspaces",
-			Aliases:     []string{"ws"},
 			Usage:       "Query Workspaces via cli options",
-			UsageText:   "Query Workspaces via cli options",
+			UsageText:   "Query Workspaces via cli options\nReference: https://developer.hashicorp.com/terraform/cloud-docs/api-docs/workspaces",
 			Subcommands: []*cli.Command{tfc.WorkspaceListCmd()},
 		},
 		{
 			Name:        "config-versions",
-			Aliases:     []string{"cv"},
 			Usage:       "Query Terraform Workspace Configuration Versions",
-			UsageText:   "Query Terraform Workspace Configuration Versions",
+			UsageText:   "Query Terraform Workspace Configuration Versions\nReference: https://developer.hashicorp.com/terraform/cloud-docs/api-docs/configuration-versions",
 			Subcommands: []*cli.Command{tfc.ConfigVersionsListCmd()},
 		},
 		{
 			Name:        "var-sets",
-			Aliases:     []string{"vs"},
 			Usage:       "Interact Terraform Variable Sets",
-			UsageText:   "Interact Terraform Variable Sets",
+			UsageText:   "Interact Terraform Variable Sets\nReference: https://developer.hashicorp.com/terraform/cloud-docs/api-docs/variable-sets",
 			Subcommands: []*cli.Command{tfc.VarSetsListCmd()},
 		},
 		{
-			Name:        "var-set-vars",
-			Aliases:     []string{"vs"},
+			Name:        "var-set-variables",
 			Usage:       "Interact Terraform Variable Set Variables",
-			UsageText:   "Interact Terraform Variable Set Variables",
+			UsageText:   "Interact Terraform Variable Set Variables\nReference: https://developer.hashicorp.com/terraform/cloud-docs/api-docs/variable-set-variables",
 			Subcommands: []*cli.Command{tfc.VarSetVariablesListCmd(), tfc.VarSetVariablesUpdateCmd()},
+		},
+		{
+			Name:        "runs",
+			Usage:       "Interact with Terraform Cloud runs",
+			UsageText:   "Interact with Terraform Cloud runs\nReference: https://developer.hashicorp.com/terraform/cloud-docs/api-docs/runs",
+			Subcommands: []*cli.Command{tfc.RunsCreateCmd()},
 		},
 	}
 

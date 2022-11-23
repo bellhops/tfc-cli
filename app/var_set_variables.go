@@ -154,14 +154,3 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 	fmt.Print(string(r))
 	return nil
 }
-
-func ptrString(v string) *string {
-	if v == "" {
-		return nil
-	}
-	return &v
-}
-
-func ptrBool(v bool) *bool {
-	return &v
-}
