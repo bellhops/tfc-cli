@@ -53,7 +53,7 @@ func (tfc *TFCClient) VarSetVariablesListCmd() *cli.Command {
 				return nil
 			}
 
-			fmt.Print(string(r))
+			fmt.Println(string(r))
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -151,6 +151,6 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 		return nil
 	}
 
-	fmt.Print(string(r))
+	fmt.Println(string(r))
 	return nil
 }

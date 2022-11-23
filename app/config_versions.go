@@ -99,7 +99,7 @@ func (tfc *TFCClient) configVersionsList(ctx *cli.Context) error {
 		return nil
 	}
 
-	fmt.Print(string(r))
+	fmt.Println(string(r))
 
 	return nil
 }
