@@ -5,20 +5,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func CreateCtrl(app *cli.App, cfg *Config, c *tfe.Client) *Ctrl {
-	if app == nil {
-		app = cli.NewApp()
-	}
+func CreateTFCClient(app *cli.App, cfg *Config, c *tfe.Client) *TFCClient {
+	//if app == nil {
+	//	app = cli.NewApp()
+	//}
 
-	return &Ctrl{
-		App:    app,
+	return &TFCClient{
+		//App:    app,
 		Client: c,
 		Cfg:    cfg,
 	}
 }
 
-type Ctrl struct {
-	App    *cli.App
+type TFCClient struct {
+	//App    *cli.App
 	Client *tfe.Client
 	Cfg    *Config
 }

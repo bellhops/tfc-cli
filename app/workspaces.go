@@ -21,32 +21,13 @@ var WSIncludeOpts = map[string]tfe.WSIncludeOpt{
 	"current-state-version":                                tfe.WSCurrentStateVer,
 }
 
-func (ctrl *Ctrl) InitWorkspaces() {
-	// Get list of sub-commands
-	sub := []*cli.Command{
-		ctrl.workspaceListCmd(),
-	}
-
-	// Root resource command
-	root := &cli.Command{
-		Name:        "workspaces",
-		Aliases:     []string{"ws"},
-		Usage:       "Query Workspaces via cli options",
-		UsageText:   "Query Workspaces via cli options",
-		Subcommands: sub,
-	}
-
-	// Append top level resource command 'Config-Versions'
-	ctrl.App.Commands = append(ctrl.App.Commands, root)
-}
-
-func (ctrl *Ctrl) workspaceListCmd() *cli.Command {
+func (tfc *TFCClient) WorkspaceListCmd() *cli.Command {
 	return &cli.Command{
 		Name:     "list",
 		Aliases:  []string{"ls"},
 		Usage:    "List all the workspaces within an organization.",
 		Category: "workspace",
-		Action:   ctrl.workspacesList,
+		Action:   tfc.workspacesList,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "search",
@@ -73,16 +54,11 @@ func (ctrl *Ctrl) workspaceListCmd() *cli.Command {
 				Usage:   "A list of relations to include. See available resources https://www.terraform.io/docs/cloud/api/workspaces.html#available-related-resources",
 				Aliases: []string{"i"},
 			},
-			&cli.StringFlag{
-				Name:    "bar",
-				Usage:   "fuck you",
-				Aliases: []string{"bb"},
-			},
 		},
 	}
 }
 
-func (ctrl *Ctrl) workspacesList(ctx *cli.Context) error {
+func (tfc *TFCClient) workspacesList(ctx *cli.Context) error {
 	opts := &tfe.WorkspaceListOptions{
 		ListOptions:  tfe.ListOptions{},
 		Search:       ctx.String("search"),
@@ -104,7 +80,7 @@ func (ctrl *Ctrl) workspacesList(ctx *cli.Context) error {
 		}
 	}
 
-	wl, err := ctrl.Client.Workspaces.List(ctx.Context, ctrl.Cfg.OrgName, opts)
+	wl, err := tfc.Client.Workspaces.List(ctx.Context, tfc.Cfg.OrgName, opts)
 	if err != nil {
 		return err
 	}

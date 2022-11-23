@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/cnorman/tfc-cli/app"
+	"github.com/bellhops/tfc-cli/app"
 	"github.com/hashicorp/go-tfe"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -53,18 +53,44 @@ func main() {
 		OrgName: o,
 	}
 
+	tfc := app.CreateTFCClient(nil, cfg, tfeClient)
+
 	a := cli.NewApp()
 	a.Name = "tfc-cli"
-	a.Usage = "Interact with Terraform Cloud via CLI"
+	a.Usage = "tfc-client [resource] [action] [options]; tfc-client workspaces list --search=\"api\""
 	a.UsageText = "Interact with Terraform Cloud via CLI\nRequires Terraform Cloud API Access Token. " +
 		"Set TFC_TOKEN or pass --token\nRequires Terraform Cloud Organization Name. Set TFC_ORG or pass --org" +
 		"\nSee https://developer.hashicorp.com/terraform/cloud-docs/api-docs for reference"
 
-	ctrl := app.CreateCtrl(a, cfg, tfeClient)
+	// The App.Commands field contains the top level resource commands:
+	// 		tfc-client [resource]; tfc-client workspaces
+	// The Subcommands field for each resource command contain the action subcommands:
+	//		tfc-client [resource] [action] [options]; tfc-client workspaces list --search="api"
+	a.Commands = []*cli.Command{
+		{
+			Name:        "workspaces",
+			Aliases:     []string{"ws"},
+			Usage:       "Query Workspaces via cli options",
+			UsageText:   "Query Workspaces via cli options",
+			Subcommands: []*cli.Command{tfc.WorkspaceListCmd()},
+		},
+		{
+			Name:        "config-versions",
+			Aliases:     []string{"cv"},
+			Usage:       "Query Terraform Workspace Configuration Versions",
+			UsageText:   "Query Terraform Workspace Configuration Versions",
+			Subcommands: []*cli.Command{tfc.ConfigVersionsListCmd()},
+		},
+		{
+			Name:        "var-sets",
+			Aliases:     []string{"vs"},
+			Usage:       "Interact Terraform Variable Sets",
+			UsageText:   "Interact Terraform Variable Sets",
+			Subcommands: []*cli.Command{tfc.VarSetsListCmd()},
+		},
+	}
 
-	ctrl.InitWorkspaces()
-
-	err = ctrl.App.Run(os.Args)
+	err = a.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
