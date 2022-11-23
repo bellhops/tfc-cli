@@ -88,7 +88,7 @@ func (tfc *TFCClient) workspacesList(ctx *cli.Context) error {
 	type listResponse struct {
 		ID   string
 		Name string
-		Tags []string `json:"omitempty"`
+		Tags []string `json:",omitempty"`
 	}
 
 	response := make([]listResponse, len(wl.Items))

@@ -68,7 +68,6 @@ func (tfc *TFCClient) VarSetsListCmd() *cli.Command {
 		},
 	}
 }
-
 func (tfc *TFCClient) varSetsList(ctx *cli.Context) error {
 	opts := &tfe.VariableSetListOptions{
 		ListOptions: tfe.ListOptions{
@@ -97,6 +96,104 @@ func (tfc *TFCClient) varSetsList(ctx *cli.Context) error {
 	}
 
 	r, err := json.MarshalIndent(vsl, "", "    ")
+	if err != nil {
+		return nil
+	}
+
+	fmt.Println(string(r))
+
+	return nil
+}
+
+func (tfc *TFCClient) VarSetsListForWorkspaceCmd() *cli.Command {
+	return &cli.Command{
+		Name:     "list-for-workspace",
+		Aliases:  []string{"ws-ls"},
+		Usage:    "List all the variable sets within a workspace.",
+		Category: "variable-sets",
+		Action:   tfc.varSetsListForWorkspace,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "workspace-id",
+				Usage:   "ID of workspace to query.",
+				Aliases: []string{"id", "ws"},
+			},
+			&cli.StringSliceFlag{
+				Name:    "include",
+				Usage:   "A list of relations to include. See available resources https://www.terraform.io/docs/cloud/api",
+				Aliases: []string{"i"},
+			},
+			&cli.IntFlag{
+				Name:  "page-num",
+				Usage: "The page number to request. The results vary based on the PageSize.",
+			},
+			&cli.IntFlag{
+				Name:  "page-size",
+				Usage: "The number of elements returned in a single page.",
+			},
+		},
+	}
+}
+
+type varSetResponse struct {
+	ID          string
+	Name        string
+	Description string
+	Global      bool
+	OrgName     string
+	Workspaces  []*tfe.Workspace           `json:",omitempty"`
+	Variables   []*tfe.VariableSetVariable `json:",omitempty"`
+}
+
+func (tfc *TFCClient) varSetsListForWorkspace(ctx *cli.Context) error {
+	opts := &tfe.VariableSetListOptions{
+		ListOptions: tfe.ListOptions{
+			PageNumber: ctx.Int("page-num"),
+			PageSize:   ctx.Int("page-size"),
+		},
+	}
+
+	include := ctx.StringSlice("include")
+
+	for _, r := range include {
+		if opt, ok := varSetIncludeOpts[r]; !ok {
+			return fmt.Errorf("include opt not recognized: %s", r)
+		} else {
+			if opts.Include == "" {
+				opts.Include = string(opt)
+				continue
+			}
+			opts.Include = strings.Join([]string{opts.Include, string(opt)}, ",")
+		}
+	}
+
+	vsl, err := tfc.Client.VariableSets.ListForWorkspace(ctx.Context, ctx.String("workspace-id"), opts)
+	if err != nil {
+		return err
+	}
+
+	items := make([]varSetResponse, len(vsl.Items))
+
+	for i := range items {
+		raw := vsl.Items[i]
+		items[i] = varSetResponse{
+			ID:          raw.ID,
+			Name:        raw.Name,
+			Description: raw.Description,
+			Global:      raw.Global,
+			OrgName:     raw.Organization.Name,
+		}
+
+		if strings.Contains(opts.Include, string(tfe.VariableSetWorkspaces)) {
+			items[i].Workspaces = raw.Workspaces
+		}
+
+		if strings.Contains(opts.Include, string(tfe.VariableSetVars)) {
+			items[i].Variables = raw.Variables
+		}
+	}
+
+	r, err := json.MarshalIndent(items, "", "    ")
 	if err != nil {
 		return nil
 	}
