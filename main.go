@@ -88,6 +88,13 @@ func main() {
 			UsageText:   "Interact Terraform Variable Sets",
 			Subcommands: []*cli.Command{tfc.VarSetsListCmd()},
 		},
+		{
+			Name:        "var-set-vars",
+			Aliases:     []string{"vs"},
+			Usage:       "Interact Terraform Variable Set Variables",
+			UsageText:   "Interact Terraform Variable Set Variables",
+			Subcommands: []*cli.Command{tfc.VarSetVariablesListCmd(), tfc.VarSetVariablesUpdateCmd()},
+		},
 	}
 
 	err = a.Run(os.Args)

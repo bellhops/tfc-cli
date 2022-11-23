@@ -49,8 +49,8 @@ func (tfc *TFCClient) VarSetsListCmd() *cli.Command {
 		Name:     "list",
 		Aliases:  []string{"ls"},
 		Usage:    "List all the variable sets within an organization.",
-		Category: "variable-ses",
-		Action:   tfc.VarSetsList,
+		Category: "variable-sets",
+		Action:   tfc.varSetsList,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "include",
@@ -69,7 +69,7 @@ func (tfc *TFCClient) VarSetsListCmd() *cli.Command {
 	}
 }
 
-func (tfc *TFCClient) VarSetsList(ctx *cli.Context) error {
+func (tfc *TFCClient) varSetsList(ctx *cli.Context) error {
 	opts := &tfe.VariableSetListOptions{
 		ListOptions: tfe.ListOptions{
 			PageNumber: ctx.Int("page-num"),
@@ -102,6 +102,6 @@ func (tfc *TFCClient) VarSetsList(ctx *cli.Context) error {
 	}
 
 	fmt.Print(string(r))
-	fmt.Printf("opts: %+v\n", opts)
+
 	return nil
 }

@@ -100,6 +100,6 @@ func (tfc *TFCClient) configVersionsList(ctx *cli.Context) error {
 	}
 
 	fmt.Print(string(r))
-	fmt.Printf("opts: %+v\n", opts)
+
 	return nil
 }

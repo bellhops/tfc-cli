@@ -3,6 +3,7 @@ module github.com/bellhops/tfc-cli
 go 1.19
 
 require (
+	github.com/aws/aws-sdk-go v1.44.144
 	github.com/hashicorp/go-tfe v1.13.0
 	github.com/urfave/cli/v2 v2.23.5
 )
