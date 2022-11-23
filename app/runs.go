@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/urfave/cli/v2"
@@ -11,16 +12,16 @@ import (
 
 func (tfc *TFCClient) RunsCreateCmd() *cli.Command {
 	return &cli.Command{
-		Name:     "update",
-		Usage:    "Update variable set variable.",
-		Category: "variable-set variables",
+		Name:     "create",
+		Usage:    "Create run",
+		Category: "runs",
 		Action:   tfc.runCreate,
 		Flags: []cli.Flag{
 			// Required
 			&cli.StringFlag{
 				Name:     "workspace-id",
 				Aliases:  []string{"workspace", "ws"},
-				Usage:    "The workspace where the run will be executed.",
+				Usage:    "(Required) The workspace where the run will be executed.",
 				Required: true,
 			},
 			// Optional
@@ -62,17 +63,21 @@ func (tfc *TFCClient) RunsCreateCmd() *cli.Command {
 				Name:  "auto-apply",
 				Usage: "The run should be applied automatically without user confirmation. It defaults to the Workspace.AutoApply setting.",
 			},
-			&cli.BoolFlag{
-				Name:  "allow-empty-apply",
-				Usage: "Specifies whether Terraform can apply the run even when the plan contains no changes. Often used to upgrade state after upgrading a workspace to a new terraform version.",
-			},
 			&cli.StringSliceFlag{
-				Name:    "run-variables",
-				Usage:   "comma separated key=value pairs. Terraform input variables for a particular run, prioritized over variables defined on the workspace. All values must be expressed as an HCL literal in the same syntax you would use when writing terraform code. See https://www.terraform.io/docs/language/expressions/types.html#types for more details.",
-				Aliases: []string{"vars"},
+				Name:  "var",
+				Usage: "key=value; Terraform input variables for a particular run, prioritized over variables defined on the workspace. All values must be expressed as an HCL literal in the same syntax you would use when writing terraform code.",
 			},
 		},
 	}
+}
+
+type runCreateResponse struct {
+	ID              string
+	CreatedAt       time.Time
+	AutoApply       bool
+	HasChanges      bool
+	Status          string
+	PositionInQueue int
 }
 
 func (tfc *TFCClient) runCreate(ctx *cli.Context) error {
@@ -92,8 +97,8 @@ func (tfc *TFCClient) runCreate(ctx *cli.Context) error {
 		opts.ConfigurationVersion = &tfe.ConfigurationVersion{ID: ctx.String("configuration-version")}
 	}
 
-	if ctx.IsSet("run-variables") {
-		pairs := strings.Split(ctx.String("run-variables"), ",")
+	if ctx.IsSet("var") {
+		pairs := strings.Split(ctx.String("var"), ",")
 
 		v := make([]*tfe.RunVariable, len(pairs))
 
@@ -118,11 +123,18 @@ func (tfc *TFCClient) runCreate(ctx *cli.Context) error {
 	}
 
 	fmt.Println("updated variable set variable: ")
-	r, err := json.MarshalIndent(run, "", "    ")
+	r, err := json.MarshalIndent(runCreateResponse{
+		ID:              run.ID,
+		CreatedAt:       run.CreatedAt,
+		AutoApply:       run.AutoApply,
+		HasChanges:      run.HasChanges,
+		Status:          string(run.Status),
+		PositionInQueue: run.PositionInQueue,
+	}, "", "    ")
 	if err != nil {
 		return nil
 	}
 
-	fmt.Print(string(r))
+	fmt.Println(string(r))
 	return nil
 }
