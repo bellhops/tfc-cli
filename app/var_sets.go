@@ -65,6 +65,11 @@ func (tfc *TFCClient) VarSetsListCmd() *cli.Command {
 				Name:  "page-size",
 				Usage: "The number of elements returned in a single page.",
 			},
+			&cli.StringFlag{
+				Name:    "search",
+				Aliases: []string{"s"},
+				Usage:   "exact name to filter results by",
+			},
 		},
 	}
 }
@@ -95,12 +100,24 @@ func (tfc *TFCClient) varSetsList(ctx *cli.Context) error {
 		return err
 	}
 
-	r, err := json.MarshalIndent(vsl, "", "    ")
+	r := vsl.Items
+
+	if ctx.IsSet("search") {
+		r := []*tfe.VariableSet{}
+
+		for _, vs := range vsl.Items {
+			if vs.Name == ctx.String("search") {
+				r = append(r, vs)
+			}
+		}
+	}
+
+	pp, err := json.MarshalIndent(r, "", "    ")
 	if err != nil {
 		return nil
 	}
 
-	fmt.Println(string(r))
+	fmt.Println(string(pp))
 
 	return nil
 }
@@ -199,6 +216,91 @@ func (tfc *TFCClient) varSetsListForWorkspace(ctx *cli.Context) error {
 	}
 
 	fmt.Println(string(r))
+
+	return nil
+}
+
+func (tfc *TFCClient) VarSetsReadCmd() *cli.Command {
+	return &cli.Command{
+		Name:     "get",
+		Usage:    "get variable set by id or name",
+		Category: "variable-sets",
+		Action:   tfc.varSetsRead,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "include",
+				Usage:   "A list of relations to include. See available resources https://www.terraform.io/docs/cloud/api",
+				Aliases: []string{"i"},
+			},
+			&cli.StringFlag{
+				Name:  "id",
+				Usage: "id to query",
+			},
+			&cli.StringFlag{
+				Name:  "name",
+				Usage: "name to query",
+			},
+		},
+	}
+}
+func (tfc *TFCClient) varSetsRead(ctx *cli.Context) error {
+	if !ctx.IsSet("id") && !ctx.IsSet("name") {
+		return fmt.Errorf("one of --id or --name is required")
+	}
+
+	if ctx.IsSet("id") && ctx.IsSet("name") {
+		return fmt.Errorf("only one of --id or --name can be passed")
+	}
+
+	opts := &tfe.VariableSetListOptions{}
+
+	include := ctx.StringSlice("include")
+
+	for _, r := range include {
+		if opt, ok := varSetIncludeOpts[r]; !ok {
+			return fmt.Errorf("include opt not recognized: %s", r)
+		} else {
+			if opts.Include == "" {
+				opts.Include = string(opt)
+				continue
+			}
+			opts.Include = strings.Join([]string{opts.Include, string(opt)}, ",")
+		}
+	}
+
+	vsl, err := tfc.Client.VariableSets.List(ctx.Context, tfc.Cfg.OrgName, opts)
+	if err != nil {
+		return err
+	}
+
+	r := vsl.Items
+
+	if ctx.IsSet("id") {
+		r := []*tfe.VariableSet{}
+
+		for _, vs := range vsl.Items {
+			if vs.ID == ctx.String("id") {
+				r = append(r, vs)
+			}
+		}
+	}
+
+	if ctx.IsSet("name") {
+		r := []*tfe.VariableSet{}
+
+		for _, vs := range vsl.Items {
+			if vs.Name == ctx.String("search") {
+				r = append(r, vs)
+			}
+		}
+	}
+
+	pp, err := json.MarshalIndent(r, "", "    ")
+	if err != nil {
+		return nil
+	}
+
+	fmt.Println(string(pp))
 
 	return nil
 }

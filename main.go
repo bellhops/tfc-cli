@@ -68,7 +68,7 @@ func main() {
 			Name:        "var-sets",
 			Usage:       "Interact Terraform Variable Sets",
 			UsageText:   "Interact Terraform Variable Sets\nReference: https://developer.hashicorp.com/terraform/cloud-docs/api-docs/variable-sets",
-			Subcommands: []*cli.Command{tfc.VarSetsListCmd(), tfc.VarSetsListForWorkspaceCmd()},
+			Subcommands: []*cli.Command{tfc.VarSetsListCmd(), tfc.VarSetsListForWorkspaceCmd(), tfc.VarSetsReadCmd()},
 		},
 		{
 			Name:        "var-set-variables",
