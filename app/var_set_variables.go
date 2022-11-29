@@ -149,6 +149,7 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 			fmt.Printf("successfully read variable set: %+v\n", varSet)
 		}
 	} else {
+		// If we get a name and not an ID we need to query for the ID
 		var p *tfe.Pagination
 		for p == nil || p.CurrentPage < p.TotalPages {
 			p = &tfe.Pagination{
@@ -172,6 +173,7 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 			for _, vs := range lr.Items {
 				if vs.Name == ctx.String("set-name") {
 					if verbose {
+						// OMG why did I write so much logging??
 						var result struct {
 							ID          string                    `json:"id"`
 							Name        string                    `json:"name"`
