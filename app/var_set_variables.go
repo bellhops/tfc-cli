@@ -252,11 +252,11 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 	if verbose {
 		fmt.Printf("Updating Variable: %+v\n", struct {
 			variableSetID, variableID string
-			options                   *tfe.VariableSetVariableUpdateOptions
+			options                   tfe.VariableSetVariableUpdateOptions
 		}{
 			variableSetID: varSet.ID,
 			variableID:    *varID,
-			options:       opts,
+			options:       *opts,
 		})
 	}
 
