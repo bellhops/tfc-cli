@@ -169,7 +169,10 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 				return err
 			}
 
+			fmt.Println("Total variable sets returned: ", lr.TotalCount)
+
 			// look for matching set on this page
+			fmt.Println("looking for matching set: ", ctx.String("set-name"))
 			for _, vs := range lr.Items {
 				if vs.Name == ctx.String("set-name") {
 					if verbose {
@@ -199,7 +202,7 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 				}
 
 				if verbose {
-					fmt.Printf("Variable set name doesn't match: %s != %s\n", vs.Name, ctx.String("set-name"))
+					fmt.Printf("Variable set name doesn't match: %s\n", vs.Name)
 				}
 			}
 
@@ -209,6 +212,10 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 			}
 
 			p = lr.Pagination
+		}
+
+		if varSet == nil {
+			return fmt.Errorf("variable set with matching name not found")
 		}
 	}
 
