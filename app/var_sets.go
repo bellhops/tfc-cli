@@ -52,7 +52,7 @@ func (tfc *TFCClient) VarSetsListCmd() *cli.Command {
 		Category: "variable-sets",
 		Action:   tfc.varSetsList,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
+			&cli.StringSliceFlag{
 				Name:    "include",
 				Usage:   "A list of relations to include. See available resources https://www.terraform.io/docs/cloud/api",
 				Aliases: []string{"i"},
@@ -227,7 +227,7 @@ func (tfc *TFCClient) VarSetsReadCmd() *cli.Command {
 		Category: "variable-sets",
 		Action:   tfc.varSetsRead,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
+			&cli.StringSliceFlag{
 				Name:    "include",
 				Usage:   "A list of relations to include. See available resources https://www.terraform.io/docs/cloud/api",
 				Aliases: []string{"i"},
@@ -237,8 +237,9 @@ func (tfc *TFCClient) VarSetsReadCmd() *cli.Command {
 				Usage: "id to query",
 			},
 			&cli.StringFlag{
-				Name:  "name",
-				Usage: "name to query",
+				Name:    "name",
+				Aliases: []string{"n"},
+				Usage:   "name to query",
 			},
 		},
 	}
@@ -276,7 +277,7 @@ func (tfc *TFCClient) varSetsRead(ctx *cli.Context) error {
 	r := vsl.Items
 
 	if ctx.IsSet("id") {
-		r := []*tfe.VariableSet{}
+		r = []*tfe.VariableSet{}
 
 		for _, vs := range vsl.Items {
 			if vs.ID == ctx.String("id") {
@@ -286,10 +287,10 @@ func (tfc *TFCClient) varSetsRead(ctx *cli.Context) error {
 	}
 
 	if ctx.IsSet("name") {
-		r := []*tfe.VariableSet{}
+		r = []*tfe.VariableSet{}
 
 		for _, vs := range vsl.Items {
-			if vs.Name == ctx.String("search") {
+			if vs.Name == ctx.String("name") {
 				r = append(r, vs)
 			}
 		}

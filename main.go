@@ -47,6 +47,13 @@ func main() {
 		"Set TFC_TOKEN or pass --token\nRequires Terraform Cloud Organization Name. Set TFC_ORG or pass --org" +
 		"\nSee https://developer.hashicorp.com/terraform/cloud-docs/api-docs for reference"
 
+	verboseFlag := &cli.BoolFlag{
+		Name:    "verbose",
+		Aliases: []string{"v"},
+		Value:   true,
+	}
+	a.Flags = []cli.Flag{verboseFlag}
+
 	// The App.Commands field contains the top level resource commands:
 	// 		tfc-client [resource]; tfc-client workspaces
 	// The Subcommands field for each resource command contain the action subcommands:

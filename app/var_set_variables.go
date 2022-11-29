@@ -78,31 +78,27 @@ func (tfc *TFCClient) VarSetVariablesListCmd() *cli.Command {
 func (tfc *TFCClient) VarSetVariablesUpdateCmd() *cli.Command {
 	return &cli.Command{
 		Name:     "update",
-		Usage:    "Update variable set variable.",
+		Usage:    "Update variable set variable.\none of set-id, var-id is required",
 		Category: "variable-set variables",
 		Action:   tfc.varSetVariableUpdate,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "var-set-id",
-				Usage:    "id of the variable set containing the variable to modify. See tfc-client var-sets to query variable sets.",
-				Aliases:  []string{"set"},
-				Required: true,
+				Name:  "set-id",
+				Usage: "id of the variable set containing the variable to modify. See tfc-client var-sets to query variable sets.",
 			},
 			&cli.StringFlag{
-				Name:     "var-id",
-				Usage:    "id of the variable to modify.",
-				Aliases:  []string{"id"},
-				Required: true,
+				Name:  "set-name",
+				Usage: "name of the variable set containing the variable to modify. See tfc-client var-sets to query variable sets. IGNORED IF var-set-id IS SET.",
 			},
 			&cli.StringFlag{
 				Name:     "key",
-				Usage:    "The name of the variable.",
 				Aliases:  []string{"k"},
+				Usage:    "(Required) key of the variable to modify.",
 				Required: true,
 			},
 			&cli.StringFlag{
 				Name:     "value",
-				Usage:    "The name of the variable.",
+				Usage:    "(Required) The value of the variable.",
 				Aliases:  []string{"v"},
 				Required: true,
 			},
@@ -126,6 +122,110 @@ func (tfc *TFCClient) VarSetVariablesUpdateCmd() *cli.Command {
 }
 
 func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
+	if ctx.IsSet("set-id") && ctx.IsSet("set-name") {
+		return fmt.Errorf("only one of \"--var-set-id\" or \"--var-set-name\" can be used")
+	}
+
+	var (
+		varSet  *tfe.VariableSet
+		varID   *string
+		verbose = ctx.Bool("verbose")
+	)
+
+	// Fetch the variable set with all related variables
+	if ctx.IsSet("set-id") {
+		var err error
+		opts := &tfe.VariableSetReadOptions{Include: &[]tfe.VariableSetIncludeOpt{tfe.VariableSetVars}}
+
+		if verbose {
+			fmt.Printf("recieved set-id: %s\nReading variable set with options: %+v\n", ctx.String("set-id"), *opts)
+		}
+
+		if varSet, err = tfc.Client.VariableSets.Read(ctx.Context, ctx.String("set-id"), opts); err != nil {
+			return err
+		}
+
+		if verbose {
+			fmt.Printf("successfully read variable set: %+v\n", varSet)
+		}
+	} else {
+		var p *tfe.Pagination
+		for p == nil || p.CurrentPage < p.TotalPages {
+			p = &tfe.Pagination{
+				NextPage: 0,
+			}
+			opts := &tfe.VariableSetListOptions{ListOptions: tfe.ListOptions{
+				PageNumber: p.NextPage,
+				PageSize:   50,
+			}, Include: string(tfe.VariableSetVars)}
+
+			if verbose {
+				fmt.Printf("listing variable sets with options: %+v\n", opts)
+			}
+
+			lr, err := tfc.Client.VariableSets.List(ctx.Context, tfc.Cfg.OrgName, opts)
+			if err != nil {
+				return err
+			}
+
+			// look for matching set on this page
+			for _, vs := range lr.Items {
+				if vs.Name == ctx.String("set-name") {
+					if verbose {
+						var result struct {
+							ID          string                    `json:"id"`
+							Name        string                    `json:"name"`
+							Description string                    `json:"description"`
+							Global      bool                      `json:"global"`
+							Variables   []tfe.VariableSetVariable `json:"vars,omitempty"`
+						}
+
+						result.ID = vs.ID
+						result.Global = vs.Global
+						result.Name = vs.Name
+						result.Description = vs.Description
+						result.Variables = make([]tfe.VariableSetVariable, len(vs.Variables))
+
+						for i := range vs.Variables {
+							result.Variables[i] = *vs.Variables[i]
+						}
+
+						fmt.Printf("Variable set name match: %+v\n", result)
+					}
+					varSet = vs
+					break
+				}
+
+				if verbose {
+					fmt.Printf("Variable set name doesn't match: %s != %s\n", vs.Name, ctx.String("set-name"))
+				}
+			}
+
+			// If we found it, stop looking
+			if varSet != nil {
+				break
+			}
+
+			p = lr.Pagination
+		}
+	}
+
+	for _, v := range varSet.Variables {
+		if v.Key == ctx.String("key") {
+			if verbose {
+				fmt.Printf("Variable key match: %+v\n", *v)
+			}
+			varID = ptrString(v.ID)
+			if err := ctx.Set("key", v.Key); err != nil {
+				return err
+			}
+		}
+	}
+
+	if varID == nil {
+		return fmt.Errorf("matching variable not found\nkey: %s", ctx.String("key"))
+	}
+
 	opts := &tfe.VariableSetVariableUpdateOptions{
 		Key:         ptrString(ctx.String("key")),
 		Value:       ptrString(ctx.String("value")),
@@ -140,17 +240,27 @@ func (tfc *TFCClient) varSetVariableUpdate(ctx *cli.Context) error {
 		opts.Sensitive = ptrBool(ctx.Bool("sensitive"))
 	}
 
-	vsv, err := tfc.Client.VariableSetVariables.Update(ctx.Context, ctx.String("var-set-id"), ctx.String("var-id"), opts)
+	if verbose {
+		fmt.Printf("Updating Variable: %+v\n", struct {
+			variableSetID, variableID string
+			options                   *tfe.VariableSetVariableUpdateOptions
+		}{
+			variableSetID: varSet.ID,
+			variableID:    *varID,
+			options:       opts,
+		})
+	}
+
+	vsv, err := tfc.Client.VariableSetVariables.Update(ctx.Context, varSet.ID, *varID, opts)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("updated variable set variable: ")
 	r, err := json.MarshalIndent(vsv, "", "    ")
 	if err != nil {
 		return nil
 	}
 
-	fmt.Println(string(r))
+	fmt.Printf("updated variable set variable:\n%s\n", string(r))
 	return nil
 }
