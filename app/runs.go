@@ -93,6 +93,11 @@ func (tfc *TFCClient) runCreate(ctx *cli.Context) error {
 		AutoApply:        getIfSetBool(ctx, "auto-apply"),
 	}
 
+	if ctx.Bool("verbose") {
+		fmt.Printf("create options: %+v\n", opts)
+		fmt.Printf("workspace-id: %s\n", opts.Workspace.ID)
+	}
+
 	if ctx.IsSet("configuration-version") {
 		opts.ConfigurationVersion = &tfe.ConfigurationVersion{ID: ctx.String("configuration-version")}
 	}
@@ -119,10 +124,10 @@ func (tfc *TFCClient) runCreate(ctx *cli.Context) error {
 
 	run, err := tfc.Client.Runs.Create(ctx.Context, opts)
 	if err != nil {
+		fmt.Printf("Failed to create run: %s\n", err)
 		return err
 	}
 
-	fmt.Println("updated variable set variable: ")
 	r, err := json.MarshalIndent(runCreateResponse{
 		ID:              run.ID,
 		CreatedAt:       run.CreatedAt,
