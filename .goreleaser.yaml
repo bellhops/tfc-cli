@@ -25,7 +25,7 @@ universal_binaries:
 
 brews:
   -
-    name: bellhops
+    name: tfc-cli
     homepage: "https://github.com/bellhops/homebrew-bellhops"
     tap:
       owner: bellhops
