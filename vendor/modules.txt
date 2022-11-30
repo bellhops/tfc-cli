@@ -1,0 +1,36 @@
+# github.com/cpuguy83/go-md2man/v2 v2.0.2
+## explicit; go 1.11
+github.com/cpuguy83/go-md2man/v2/md2man
+# github.com/google/go-querystring v1.1.0
+## explicit; go 1.10
+github.com/google/go-querystring/query
+# github.com/hashicorp/go-cleanhttp v0.5.2
+## explicit; go 1.13
+github.com/hashicorp/go-cleanhttp
+# github.com/hashicorp/go-retryablehttp v0.7.1
+## explicit; go 1.13
+github.com/hashicorp/go-retryablehttp
+# github.com/hashicorp/go-slug v0.10.0
+## explicit; go 1.15
+github.com/hashicorp/go-slug
+# github.com/hashicorp/go-tfe v1.13.0
+## explicit; go 1.19
+github.com/hashicorp/go-tfe
+# github.com/hashicorp/go-version v1.6.0
+## explicit
+github.com/hashicorp/go-version
+# github.com/hashicorp/jsonapi v0.0.0-20210826224640-ee7dae0fb22d
+## explicit
+github.com/hashicorp/jsonapi
+# github.com/russross/blackfriday/v2 v2.1.0
+## explicit
+github.com/russross/blackfriday/v2
+# github.com/urfave/cli/v2 v2.23.5
+## explicit; go 1.18
+github.com/urfave/cli/v2
+# github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673
+## explicit
+github.com/xrash/smetrics
+# golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+## explicit
+golang.org/x/time/rate
