@@ -25,14 +25,14 @@ universal_binaries:
 
 brews:
   -
-    name: mediumautopost
-    homepage: "https://github.com/askcloudarchitech/mediumautopost"
+    name: bellhops
+    homepage: "https://github.com/bellhops/homebrew-bellhops"
     tap:
-      owner: askcloudarchitech
-      name: homebrew-askcloudarchitech
+      owner: bellhops
+      name: homebrew-bellhops
     commit_author:
-      name: gmorse81
-      email: gmorse@emailaddress.com
+      name: calebnorman
+      email: caleb.norman@getbellhops.com
 
 checksum:
   name_template: 'checksums.txt'
